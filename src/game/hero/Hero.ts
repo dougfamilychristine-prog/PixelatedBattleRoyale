@@ -33,6 +33,7 @@ export class Hero
 
         this.body = this.scene.physics.add.sprite(0, 0, heroConfig.spriteKey);
         this.body.setCollideWorldBounds(true);
+        this.body.name = 'hero';
 
         this.container = this.scene.add.container(x, y);
         this.container.add(this.body);
@@ -49,14 +50,21 @@ export class Hero
             let velocityY = 0;
             let velocityX = 0;
             let animationKey = '';
-            let equippedWeaponAnimationKey = '';
+            let animationKeyBase = '';
+
+            switch (obj.name)
+            {
+                case 'weapon':
+                    animationKeyBase = 'weapon_';
+                    break;
+            }
 
             if (!this.cursorKeys)
             {
                 throw new Error('The cursor keys property will only be available if defined in the Scene Injection Map and the plugin is installed.');
             }
 
-            if (!obj.body)
+            if (!obj.body || (obj.name === 'weapon' && !this.equippedWeapon))
             {
                 return;
             }
@@ -64,27 +72,43 @@ export class Hero
             if (A?.isDown)
             {
                 velocityX = -BASE_VELOCITY;
-                animationKey = 'left';
-                equippedWeaponAnimationKey = 'weapon_left';
+                animationKey = `${animationKeyBase}left`;
+
+                if (obj.name === 'weapon')
+                {
+                    this.equippedWeapon?.setPosition(this.body.x, this.body.y);
+                }
             }
             else if (D?.isDown)
             {
                 velocityX = BASE_VELOCITY;
-                animationKey = 'right';
-                equippedWeaponAnimationKey = 'weapon_right';
+                animationKey = `${animationKeyBase}right`;
+
+                if (obj.name === 'weapon')
+                {
+                    this.equippedWeapon?.setPosition(this.body.x - 5, this.body.y);
+                }
             }
 
             if (W?.isDown)
             {
                 velocityY = -BASE_VELOCITY;
-                animationKey = 'up';
-                equippedWeaponAnimationKey = 'weapon_up';
+                animationKey = `${animationKeyBase}up`;
+
+                if (obj.name === 'weapon')
+                {
+                    this.equippedWeapon?.setPosition(this.body.x, this.body.y);
+                }
             }
             else if (S?.isDown)
             {
                 velocityY = BASE_VELOCITY;
-                animationKey = 'down';
-                equippedWeaponAnimationKey = 'weapon_down';
+                animationKey = `${animationKeyBase}down`;
+
+                if (obj.name === 'weapon')
+                {
+                    this.equippedWeapon?.setPosition(this.body.x - 20, this.body.y);
+                }
             }
 
             if (velocityX === 0 && velocityY === 0)
@@ -103,10 +127,13 @@ export class Hero
             obj.body.velocity.x = velocityX !== 0 && velocityY !== 0 ? velocityX * 0.75 : velocityX;
             obj.body.velocity.y = velocityY !== 0 && velocityX !== 0 ? velocityY * 0.75 : velocityY;
 
-            this.body.anims.play(animationKey, true);
-            if (this.equippedWeapon)
+            if (obj.name === 'hero')
             {
-                this.equippedWeapon.anims.play(equippedWeaponAnimationKey, true);
+                this.body.anims.play(animationKey, true);
+            }
+            else if (this.equippedWeapon && obj.name === 'weapon')
+            {
+                this.equippedWeapon.anims.play(animationKey, true);
             }
         });
     }
@@ -118,6 +145,7 @@ export class Hero
         weapon.disableBody(true, true);
         const newSword = new Sword(this.scene);
         this.equippedWeapon = newSword.add(70, 0, 'sword');
+        this.equippedWeapon.name = 'weapon';
 
         this.container.add(this.equippedWeapon);
     }

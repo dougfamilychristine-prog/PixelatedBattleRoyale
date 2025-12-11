@@ -8,7 +8,11 @@ type HeroConfig = {
     createAnimations: () => void;
 }
 
-const HEROS_CONFIG: Record<HeroKeys, HeroConfig> = {
+type HeroConfigInternal = Omit<HeroConfig, 'createAnimations'> & {
+    createAnimations: (animationManager: Phaser.Animations.AnimationManager, spriteKey: string) => void;
+}
+
+const HEROS_CONFIG: Record<HeroKeys, HeroConfigInternal> = {
     main: {
         spriteKey: 'player',
         spriteSheetPath: 'assets/heros/main/hero.png',

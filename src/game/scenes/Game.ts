@@ -22,7 +22,6 @@ export class Game extends Scene
 
     create ()
     {
-        // this.background = this.add.image(0, 0, 'background').setOrigin(0, 0).setScale(1.1, 1);
         this.grass = this.add.tileSprite(0, 285, 1024, 768 - 285, 'grass').setOrigin(0, 0);
         this.background = this.physics.add.staticGroup();
         this.background.create(0, 0, 'background').setOrigin(0, 0).setScale(1.1, 1).refreshBody();
