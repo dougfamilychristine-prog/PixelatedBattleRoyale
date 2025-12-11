@@ -74,9 +74,10 @@ export class Hero
                 velocityX = -BASE_VELOCITY;
                 animationKey = `${animationKeyBase}left`;
 
-                if (obj.name === 'weapon')
+                if (obj.name === 'weapon' && this.equippedWeapon)
                 {
-                    this.equippedWeapon?.setPosition(this.body.x, this.body.y);
+                    this.equippedWeapon.setPosition(this.body.x, this.body.y);
+                    this.equippedWeapon.setBelow(this.body);
                 }
             }
             else if (D?.isDown)
@@ -84,9 +85,10 @@ export class Hero
                 velocityX = BASE_VELOCITY;
                 animationKey = `${animationKeyBase}right`;
 
-                if (obj.name === 'weapon')
+                if (obj.name === 'weapon' && this.equippedWeapon)
                 {
-                    this.equippedWeapon?.setPosition(this.body.x - 5, this.body.y);
+                    this.equippedWeapon.setPosition(this.body.x - 5, this.body.y);
+                    this.equippedWeapon.setAbove(this.body);
                 }
             }
 
@@ -95,9 +97,10 @@ export class Hero
                 velocityY = -BASE_VELOCITY;
                 animationKey = `${animationKeyBase}up`;
 
-                if (obj.name === 'weapon')
+                if (obj.name === 'weapon' && this.equippedWeapon)
                 {
-                    this.equippedWeapon?.setPosition(this.body.x, this.body.y);
+                    this.equippedWeapon.setPosition(this.body.x, this.body.y);
+                    this.equippedWeapon.setBelow(this.body);
                 }
             }
             else if (S?.isDown)
@@ -105,9 +108,10 @@ export class Hero
                 velocityY = BASE_VELOCITY;
                 animationKey = `${animationKeyBase}down`;
 
-                if (obj.name === 'weapon')
+                if (obj.name === 'weapon' && this.equippedWeapon)
                 {
-                    this.equippedWeapon?.setPosition(this.body.x - 20, this.body.y);
+                    this.equippedWeapon.setPosition(this.body.x - 20, this.body.y);
+                    this.equippedWeapon.setAbove(this.body);
                 }
             }
 
