@@ -1,97 +1,124 @@
+import { getHeroConfig, HeroKeys } from '../../configs/heros';
+import { Sword } from '../weapons/Sword';
+
+let W: Phaser.Input.Keyboard.Key | undefined;
+let A: Phaser.Input.Keyboard.Key | undefined;
+let S: Phaser.Input.Keyboard.Key | undefined;
+let D: Phaser.Input.Keyboard.Key | undefined;
+
+const BASE_VELOCITY = 160;
+
 export class Hero
 {
     body: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-    physics: Phaser.Physics.Arcade.ArcadePhysics;
-    animations: Phaser.Animations.AnimationManager;
     cursorKeys: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
-    spriteKey: string;
+    scene: Phaser.Scene;
+    container: Phaser.GameObjects.Container;
 
-    constructor (physics: Phaser.Physics.Arcade.ArcadePhysics, animations: Phaser.Animations.AnimationManager, cursorKeys: Phaser.Types.Input.Keyboard.CursorKeys | undefined = undefined)
+    equippedWeapon: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody | undefined;
+
+    constructor (scene: Phaser.Scene, cursorKeys: Phaser.Types.Input.Keyboard.CursorKeys | undefined = undefined)
     {
-        this.physics = physics;
-        this.animations = animations;
+        this.scene = scene;
         this.cursorKeys = cursorKeys;
+        A = this.scene.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+        W = this.scene.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+        S = this.scene.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+        D = this.scene.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.D);
     }
 
-    addBody (x: number, y: number, texture: string): Phaser.Types.Physics.Arcade.SpriteWithDynamicBody
+    addBody (x: number, y: number, heroKey: HeroKeys): Phaser.Types.Physics.Arcade.SpriteWithDynamicBody
     {
-        this.body = this.physics.add.sprite(x, y, texture);
+        const heroConfig = getHeroConfig(heroKey, this.scene.anims);
+
+        this.body = this.scene.physics.add.sprite(0, 0, heroConfig.spriteKey);
         this.body.setCollideWorldBounds(true);
-        this.spriteKey = texture;
 
-        this.animations.create({
-            key: 'right',
-            frames: this.animations.generateFrameNumbers(this.spriteKey, { start: 16, end: 23 }),
-            frameRate: 10,
-            repeat: -1
-        });
+        this.container = this.scene.add.container(x, y);
+        this.container.add(this.body);
 
-        this.animations.create({
-            key: 'left',
-            frames: this.animations.generateFrameNumbers(this.spriteKey, { start: 24, end: 31 }),
-            frameRate: 10,
-            repeat: -1
-        });
-        
-        this.animations.create({
-            key: 'up',
-            frames: this.animations.generateFrameNumbers(this.spriteKey, { start: 0, end: 4 }),
-            frameRate: 10,
-            repeat: -1
-        });
-
-        this.animations.create({
-            key: 'down',
-            frames: this.animations.generateFrameNumbers(this.spriteKey, { start: 8, end: 12 }),
-            frameRate: 10,
-            repeat: -1
-        });
-
+        heroConfig.createAnimations();
+          
         return this.body;
     }
 
     addControls ()
     {
-        if (!this.cursorKeys)
+        this.container.getAll().forEach(obj =>
         {
-            throw new Error('The cursor keys property will only be available if defined in the Scene Injection Map and the plugin is installed.');
-        }
-        
-        if (this.cursorKeys.left.isDown)
-        {
-            this.body.setVelocityX(-160);
-            this.body.setVelocityY(0);
+            let velocityY = 0;
+            let velocityX = 0;
+            let animationKey = '';
+            let equippedWeaponAnimationKey = '';
 
-            this.body.anims.play('left', true);
-        }
-        else if (this.cursorKeys.right.isDown)
-        {
-            this.body.setVelocityX(160);
-            this.body.setVelocityY(0);
+            if (!this.cursorKeys)
+            {
+                throw new Error('The cursor keys property will only be available if defined in the Scene Injection Map and the plugin is installed.');
+            }
 
-            this.body.anims.play('right', true);
-        }
-        else if (this.cursorKeys.up.isDown)
-        {
-            this.body.setVelocityY(-160);
-            this.body.setVelocityX(0);
-            this.body.anims.play('up', true);
-        }
-        else if (this.cursorKeys.down.isDown)
-        {
-            this.body.setVelocityY(160);
-            this.body.setVelocityX(0);
-            this.body.anims.play('down', true);
-        }
-        else
-        {
-            this.body.setVelocity(0);
-            this.body.anims.stop();
-        }
+            if (!obj.body)
+            {
+                return;
+            }
+
+            if (A?.isDown)
+            {
+                velocityX = -BASE_VELOCITY;
+                animationKey = 'left';
+                equippedWeaponAnimationKey = 'weapon_left';
+            }
+            else if (D?.isDown)
+            {
+                velocityX = BASE_VELOCITY;
+                animationKey = 'right';
+                equippedWeaponAnimationKey = 'weapon_right';
+            }
+
+            if (W?.isDown)
+            {
+                velocityY = -BASE_VELOCITY;
+                animationKey = 'up';
+                equippedWeaponAnimationKey = 'weapon_up';
+            }
+            else if (S?.isDown)
+            {
+                velocityY = BASE_VELOCITY;
+                animationKey = 'down';
+                equippedWeaponAnimationKey = 'weapon_down';
+            }
+
+            if (velocityX === 0 && velocityY === 0)
+            {
+                obj.body.velocity.x = 0;
+                obj.body.velocity.y = 0;
+                this.body.anims.stop();
+                if (this.equippedWeapon)
+                {
+                    this.equippedWeapon.anims.stop();
+                }
+
+                return;
+            }
+
+            obj.body.velocity.x = velocityX !== 0 && velocityY !== 0 ? velocityX * 0.75 : velocityX;
+            obj.body.velocity.y = velocityY !== 0 && velocityX !== 0 ? velocityY * 0.75 : velocityY;
+
+            this.body.anims.play(animationKey, true);
+            if (this.equippedWeapon)
+            {
+                this.equippedWeapon.anims.play(equippedWeaponAnimationKey, true);
+            }
+        });
     }
 
-    equipWeapnon (player: Phaser.Physics.Arcade.Body | Phaser.Physics.Arcade.StaticBody | Phaser.Tilemaps.Tile | Phaser.GameObjects.GameObject & { body: Phaser.Physics.Arcade.Body }, weapon: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody)
+    equipWeapon (_player: Phaser.Physics.Arcade.Body | Phaser.Physics.Arcade.StaticBody | Phaser.Tilemaps.Tile | Phaser.GameObjects.GameObject & { body: Phaser.Physics.Arcade.Body }, weapon: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody)
     {
+        if (this.equippedWeapon) { return; }
+        
         weapon.disableBody(true, true);
+        const newSword = new Sword(this.scene);
+        this.equippedWeapon = newSword.add(70, 0, 'sword');
+
+        this.container.add(this.equippedWeapon);
     }
 }

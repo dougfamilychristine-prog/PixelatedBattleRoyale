@@ -16,7 +16,7 @@ export class Boot extends Scene
 
         this.load.image('background', 'assets/backgrounds/bg.png');
         this.load.image('grass', 'assets/tiles/grass.png');
-        this.load.spritesheet('player', 'assets/heros/hero.png', { frameWidth: 32, frameHeight: 64 });
+        this.load.spritesheet('player', 'assets/heros/main/hero.png', { frameWidth: 64, frameHeight: 64 });
     }
 
     create ()
